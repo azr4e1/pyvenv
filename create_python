@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+
+
+# create a python environment in current
+# project directory
+
+function create_usage {
+    echo -e "pyvenv create [-ynh][-f <file>] <env>"
+    echo "Create python environment <env> in current project directory"
+    echo -e "-h\n\tPrint help and exit"
+    echo -e "-y\n\tSkip questions (answering yes)"
+    echo -e "-n\n\tSkip questions (answering no)"
+    echo -e "-f <file>\n\tInstall the packages provided in <file>"
+}
+
+
+# parse options for create
+optstring=":hynf:"
+while getopts $optstring name; do
+    case $name in
+        f) file_name=$OPTARG;;
+        y) skip="yes";;
+        n) skip="no";;
+        h) create_usage; exit 0;;
+        :) echo "Invalid argument"; exit 1;;
+        *) echo "$OPTARG is not a valid option"; create_usage; exit 1;;
+    esac
+done
+
+env=${@: -1}
+# if nothing typed
+[ ! -n "$env" ] && exit 1
+# create .venv if it doesn't exist
+[ ! -d "$( pwd )/.venv" ] && mkdir .venv
+# check the environment is not already there
+for environ in $( ls .venv ); do
+    if [ "$env" = "$environ" ]; then
+        echo "$env already exists!"
+        exit 1
+    fi
+done
+
+# create environment
+echo "Initializing the environment..."
+
+env_path="$( pwd )/.venv/$env"
+python -m venv "$env_path"
+# install requests and beautifulsoup4 and python-lsp-server
+# to make pysearch and LSP work
+source "$env_path/bin/activate"
+# series of questions; skip them with -yn flag
+if [ "$skip" = "yes" ]; then
+    pip install -U pip
+    pip install requests beautifulsoup4 python-lsp-server[all]
+elif [ "$skip" = "no" ]; then
+    echo
+else
+    read -p "Update pip? [y/N] " answer0
+    [[ "$answer0" =~ "y" || "$answer0" =~ "Y" ]] && { pip install -U pip; echo; }
+    read -p "Install packages for pysearch? [y/N] " answer1
+    [[ "$answer1" =~ "y" || "$answer1" =~ "Y" ]] && { pip install requests beautifulsoup4; echo; }
+    read -p "Install packages for LSP server? [y/N] " answer2
+    [[ "$answer2" =~ "y" || "$answer2" =~ "Y" ]] && { pip install python-lsp-server[all]; }
+fi
+# install additional packages if given
+[ -n "$file_name" ] && pip install --requirement "$file_name"
+# record this environment location
+echo "$env_path" >> ~/.pyvenv_environments
+echo
+echo "Environment created"
+echo "Type"
+echo -e "\t \$ pyvenv activate $env\n"
+echo "to activate the environment"
+echo "Type"
+echo -e "\t \$ deactivate\n"
+echo "to deactivate it"
+echo "Use"
+echo -e "\t \$ pysearch 'package'\n"
+echo "to query PyPi repository"
+# vim: ft=bash

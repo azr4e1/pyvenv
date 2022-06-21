@@ -1,0 +1,156 @@
+# collection of functions for management of
+# python virtual environments. It needs to
+# be sourced into your bashrc
+# This set of functions create virtual
+# environments per project directory
+
+# activate one of the local environments
+# in the current project directory
+function activate_python {
+    # if no arguments, quit
+    local env=$1
+    # if nothing provided, select with fzf
+    [ ! -n "$env" ] && env=$( ls .venv | fzf --prompt="Select the env: ")
+    # if nothing selected, quit
+    [ ! -n "$env" ] && return 1
+    local env_path="$( pwd )/.venv/$env"
+    if [ -d "$env_path" ]; then
+        source "$env_path/bin/activate"
+    else
+        echo "That is not a virtual environment!"
+    fi
+}
+
+# this function removes a virtual
+# environment. If there are no arguments,
+# use fzf to select one of the envs
+# recorded, otherwise remove the one
+# provided
+function remove_python {
+    local env=$1
+    # if nothing provided, select with fzf
+    [ ! -n "$env" ] && env=$( ls .venv | fzf --prompt="Select the env: ")
+    # if nothing selected, quit
+    [ ! -n "$env" ] && return 1
+
+    # if selected all, remove the directory .venv
+    if [ "$env" = "all" ]; then
+        read -p "Do you really want to delete all? [y/N] " answer
+        if [[ "$answer" =~ "y" || "$answer" =~ "Y" ]]; then 
+            # remove the correspondent envs from the record
+            for environ in $( ls .venv ); do
+                sed -i "\#$( pwd )/.venv/$environ#d" ~/.pyvenv_environments
+            done
+            rm -rf .venv > /dev/null
+            echo "done"
+        fi
+        return 0
+    fi
+
+    local env_path="$( pwd )/.venv/$env"
+    if [ -d "$env_path" ]; then
+        read -p "Do you really want to delete ${env}? [y/N] " answer
+        if [[ "$answer" =~ "y" || "$answer" =~ "Y" ]]; then
+            rm -rf "$env_path" > /dev/null
+            # remove the correspondent env from the record
+            sed -i "\#$env_path#d" ~/.pyvenv_environments
+            # if .venv is empty now delete it too
+            rmdir .venv &> /dev/null
+            echo "done"
+        fi
+    else
+        echo "That is not a virtual environment!"
+    fi
+}
+
+function list_python {
+    case $1 in
+        all) if [ -f "$HOME/.pyvenv_environments" ]; then
+                echo "Environments in all directories"
+                echo
+                cat ~/.pyvenv_environments
+                echo
+            else
+                echo "No environments"
+            fi
+            ;;
+
+        *) 
+            if [ -d ".venv" ]; then
+                echo "Environments in current directory"
+                echo
+                ls .venv
+                echo
+            else
+                echo "Nothing here!"
+            fi
+            ;;
+    esac
+}
+
+function create_usage {
+    echo -e "create"
+    echo -e "\tpyvenv create [-ynh][-f <file>] <env>"
+    echo -e "\tCreate python environment <env> in current project directory"
+    echo -e "\t-h\n\t\tPrint this help and exit"
+    echo -e "\t-y\n\t\tSkip questions (answering yes)"
+    echo -e "\t-n\n\t\tSkip questions (answering no)"
+    echo -e "\t-f <file>\n\t\tInstall the packages provided in <file>"
+    echo
+}
+
+function remove_usage {
+    echo -e "remove"
+    echo -e "\tpyvenv remove [<env>][all]"
+    echo -e "\tRemove python environment <env> in current dir"
+    echo -e "\tRemove all environments in current dir if specify 'all'"
+    echo
+}
+
+function activate_usage {
+    echo -e "activate"
+    echo -e "\tpyvenv activate [<env>]"
+    echo -e "\tActivate environment <env> in current dir"
+    echo
+}
+
+function list_usage {
+    echo -e "list"
+    echo -e "\tpyvenv list [all]"
+    echo -e "\tList all environments in current dir"
+    echo -e "\tList all environments if specify 'all'"
+    echo
+}
+
+function usage_python {
+    echo -e "pyvenv is a simple cli utility for managining python virtual environments\n"
+    echo -e "help\n\tPrint this help and exit\n"
+    list_usage
+    activate_usage
+    create_usage
+    remove_usage
+}
+
+function pyvenv {
+
+    case $1 in
+        create) 
+            # deactivate other environments
+            if [[ "$PATH" =~ ".venv" ]]; then
+                deactivate
+            fi
+            # create the env
+            bash ~/.pyvenv/create_python ${@: 2}
+            env="${@: -1}"
+            env_path="$( pwd )/.venv/$env" 
+            # activate the new env
+            [ -d "$env_path" ] && source "$env_path/bin/activate" 
+            ;;
+        activate) activate_python $2 ;;
+        list) list_python $2;;
+        remove) remove_python $2 ;;
+        help) usage_python ;;
+        *) echo "Unknown option" ;;
+    esac
+}
+# vim: ft=bash
