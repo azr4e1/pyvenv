@@ -25,9 +25,10 @@ while getopts $optstring name; do
         :) echo "Invalid argument"; exit 1;;
         *) echo "$OPTARG is not a valid option"; create_usage; exit 1;;
     esac
+    shift
 done
 
-env=${@: -1}
+env=$@
 # if nothing typed
 [ ! -n "$env" ] && exit 1
 # create .venv if it doesn't exist
@@ -45,8 +46,8 @@ echo "Initializing the environment..."
 
 env_path="$( pwd )/.venv/$env"
 python -m venv "$env_path"
-# install requests and beautifulsoup4 and python-lsp-server
-# to make pysearch and LSP work
+# install requests and beautifulsoup4
+# to make pysearch work
 source "$env_path/bin/activate"
 # series of questions; skip them with -yn flag
 if [ "$skip" = "yes" ]; then
@@ -76,5 +77,6 @@ echo -e "\t \$ deactivate\n"
 echo "to deactivate it"
 echo "Use"
 echo -e "\t \$ pysearch 'package'\n"
-echo "to query PyPi repository"
+echo "to query PyPi repository. You can install pysearch from"
+echo -e "\t https://github.com/azr4e1/pysearch\n"
 # vim: ft=bash
