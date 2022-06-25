@@ -4,13 +4,24 @@
 # This set of functions create virtual
 # environments per project directory
 
+# check if fzf is available, otherwise
+# default to select
+function check_fzf {
+    
+    if $( which fzf &> /dev/null ); then
+        ls .venv | fzf --prompt="Select the env: "
+    else
+        # echo "Select the env:"
+        select name in $( ls .venv ); do echo "$name"; break; done
+    fi 
+}
 # activate one of the local environments
 # in the current project directory
 function activate_python {
     # if no arguments, quit
     local env=$1
     # if nothing provided, select with fzf
-    [ ! -n "$env" ] && env=$( ls .venv | fzf --prompt="Select the env: ")
+    [ ! -n "$env" ] && env=$( check_fzf )
     # if nothing selected, quit
     [ ! -n "$env" ] && return 1
     local env_path="$( pwd )/.venv/$env"
@@ -29,7 +40,7 @@ function activate_python {
 function remove_python {
     local env=$1
     # if nothing provided, select with fzf
-    [ ! -n "$env" ] && env=$( ls .venv | fzf --prompt="Select the env: ")
+    [ ! -n "$env" ] && env=$( check_fzf )
     # if nothing selected, quit
     [ ! -n "$env" ] && return 1
 
@@ -68,7 +79,7 @@ function list_python {
         all) if [ -f "$HOME/.pyvenv_environments" ]; then
                 echo "Environments in all directories"
                 echo
-                cat ~/.pyvenv_environments
+                cat ~/.pyvenv_environments | sort
                 echo
             else
                 echo "No environments"
@@ -79,7 +90,7 @@ function list_python {
             if [ -d ".venv" ]; then
                 echo "Environments in current directory"
                 echo
-                ls .venv
+                ls .venv | cat | sort
                 echo
             else
                 echo "Nothing here!"
@@ -150,7 +161,7 @@ function pyvenv {
         list) list_python $2;;
         remove) remove_python $2 ;;
         help) usage_python ;;
-        *) echo "Unknown option" ;;
+        *) echo -e "Unknown option\n"; usage_python;;
     esac
 }
 # vim: ft=bash

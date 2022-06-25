@@ -1,4 +1,4 @@
-# pyvenv
+pyvenv
 
 This is a little and minimalistic bash script that helps me manage 
 my python virtual environments. It is basically a wrapper for 
@@ -15,8 +15,6 @@ to know how to use the tool.
 ## Requirements
 
 * bash
-
-* fzf
 
 * python 3.9
 

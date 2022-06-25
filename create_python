@@ -51,7 +51,7 @@ source "$env_path/bin/activate"
 # series of questions; skip them with -yn flag
 if [ "$skip" = "yes" ]; then
     pip install -U pip
-    pip install requests beautifulsoup4 python-lsp-server[all]
+    pip install requests beautifulsoup4
 elif [ "$skip" = "no" ]; then
     echo
 else
@@ -59,8 +59,8 @@ else
     [[ "$answer0" =~ "y" || "$answer0" =~ "Y" ]] && { pip install -U pip; echo; }
     read -p "Install packages for pysearch? [y/N] " answer1
     [[ "$answer1" =~ "y" || "$answer1" =~ "Y" ]] && { pip install requests beautifulsoup4; echo; }
-    read -p "Install packages for LSP server? [y/N] " answer2
-    [[ "$answer2" =~ "y" || "$answer2" =~ "Y" ]] && { pip install python-lsp-server[all]; }
+    # read -p "Install packages for LSP server? [y/N] " answer2
+    # [[ "$answer2" =~ "y" || "$answer2" =~ "Y" ]] && { pip install python-lsp-server[all]; }
 fi
 # install additional packages if given
 [ -n "$file_name" ] && pip install --requirement "$file_name"
