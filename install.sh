@@ -24,4 +24,4 @@ source $HOME/.pyvenv/pyvenv
 EOF
 fi
 
-echo "Installation completed!"
+echo -e "\nInstallation completed!\n"
