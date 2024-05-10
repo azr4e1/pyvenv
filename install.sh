@@ -11,7 +11,7 @@
 sourcing=$( grep -P 'source $HOME/.pyvenv/pyvenv' ~/.bashrc )
 
 # source
-if [ -n "$sourcing" ]; then
+if ! [ -n "$sourcing" ]; then
 cp ~/.bashrc ~/.bashrc.bak
 cat <<EOF >> ~/.bashrc
 
